@@ -1,0 +1,86 @@
+{
+  "name": "Hasura Template",
+  "description": "Hasura is an open-source product that accelerates API development by 10x by giving you GraphQL or REST APIs with built-in authorization on your data, instantly.",
+  "apiVersion": "v1",
+  "project": {
+    "spec": {
+      "name": "Hasura Template",
+      "description": "Hasura is an open-source product that accelerates API development by 10x by giving you GraphQL or REST APIs with built-in authorization on your data, instantly.",
+      "region": "europe-west",
+      "color": "#57637A"
+    }
+  },
+  "spec": {
+    "kind": "Workflow",
+    "spec": {
+      "type": "sequential",
+      "steps": [
+        {
+          "kind": "Addon",
+          "spec": {
+            "name": "database",
+            "type": "postgres",
+            "version": "latest",
+            "billing": {
+              "deploymentPlan": "nf-compute-50",
+              "storageClass": "ssd",
+              "storage": 4096,
+              "replicas": 1
+            },
+            "tlsEnabled": true,
+            "externalAccessEnabled": false
+          }
+        },
+        {
+          "kind": "SecretGroup",
+          "spec": {
+            "name": "secrets",
+            "secretType": "environment-arguments",
+            "priority": 10,
+            "secrets": {
+              "variables": {
+                "HASURA_GRAPHQL_ENABLE_CONSOLE": "true"
+              }
+            },
+            "addonDependencies": [
+              {
+                "addonId": "database",
+                "keys": [
+                  {
+                    "keyName": "POSTGRES_URI",
+                    "aliases": [
+                      "HASURA_GRAPHQL_METADATA_DATABASE_URL"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "kind": "DeploymentService",
+          "spec": {
+            "name": "hasura",
+            "billing": {
+              "deploymentPlan": "nf-compute-50"
+            },
+            "deployment": {
+              "instances": 1,
+              "external": {
+                "imagePath": "hasura/graphql-engine:latest"
+              }
+            },
+            "ports": [
+              {
+                "name": "p01",
+                "internalPort": 8080,
+                "public": true,
+                "protocol": "HTTP"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
